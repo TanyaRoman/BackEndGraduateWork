@@ -88,6 +88,7 @@ public class ApiService {
     public void setHistory() {
         for (CoinList coinList : selectedCoins) {
             Coin coin = new Coin(coinList);
+//            coin.setPriceList(client.getCoinMarketChartById(coinList.getId(), "rub", 365));
             coin.setPriceList(client.getCoinMarketChartById(coinList.getId(), "rub", 365));
             coins.add(coin);
         }
@@ -102,6 +103,7 @@ public class ApiService {
         return optimization.count();
     }
 
+//    -*-*-*-
     public Pers getPortfolios(List<String> listId){
         selectedCoins.clear();
         portfolioList.clear();
@@ -114,9 +116,93 @@ public class ApiService {
         return setPrPr();
     }
 
+//    public void testOfMyStupid(){
+//        List<List<Double>> co = new ArrayList<>();
+//
+//        List<Double> ccc = new ArrayList<>();
+//        ccc.add(0.11236862384715644);
+//        ccc.add(0.12052826143388778);
+//        ccc.add(0.05083579536025625);
+//        co.add(ccc);
+//        ccc.clear();
+//
+//        ccc.add(0.12052826143388778);
+//        ccc.add(0.1817140402229305);
+//        ccc.add(-0.0097875149746843);
+//        co.add(ccc);
+//        ccc.clear();
+//
+//        ccc.add(0.05083579536025625);
+//        ccc.add(-0.009718751497468453);
+//        ccc.add(0.10207266050259277);
+//        co.add(ccc);
+//        ccc.clear();
+//
+//        List<Double> expCoins = new ArrayList<>();
+//
+//        expCoins.add(0.12714355646837158);
+//        expCoins.add(0.30174576960868404);
+//        expCoins.add(-0.1444388214061943);
+//
+//        optimization = new SPEA(expCoins, co);
+//        List<List<Double>> l_o = optimization.count();
+//        System.out.println("print result");
+//        for (List<Double> ll: l_o) {
+//            System.out.println(ll);
+//        }
+//    }
+
+    public void testOfMyStupid(){
+        List<List<Double>> co = new ArrayList<>();
+
+        List<Double> ccc = new ArrayList<>();
+        ccc.add(0.000961);
+        ccc.add(-0.000798);
+        ccc.add(0.000360);
+        co.add(ccc);
+
+        List<Double> ccc2 = new ArrayList<>();
+        ccc2.add(-0.000798);
+        ccc2.add(0.010970);
+        ccc2.add(-0.001418);
+        co.add(ccc2);
+
+        List<Double> ccc3 = new ArrayList<>();
+        ccc3.add(0.000360);
+        ccc3.add(-0.001418);
+        ccc3.add(0.003653);
+        co.add(ccc3);
+
+        List<Double> expCoins = new ArrayList<>();
+
+        expCoins.add(3.02);
+        expCoins.add(3.7);
+        expCoins.add(2.37);
+
+        optimization = new SPEA(expCoins, co);
+        List<List<Double>> l_o = optimization.count();
+        System.out.println("print result");
+        for (List<Double> ll: l_o) {
+            System.out.println(ll);
+        }
+    }
+
+//    public void getPortfolios(List<String> listId){
+//        selectedCoins.clear();
+//        portfolioList.clear();
+//        coins.clear();
+//        setSelectedCoins(listId);
+//        setHistory();
+//        setPortfolio();
+////        testOfMyStupid();
+//        setPortfolioList();
+////        return setPrPr();
+//    }
+
+//    вычисление оптимизированных портфелей
     public void setPortfolioList(){
         if (portfolioList.size() == 0) {
-            List<List<Double>> optim = doOptimization();
+            List<List<Double>> optim = doOptimization();  // - говно не работающее по какой-то неведанной причине. Фу таким быть
             for (List<Double> list : optim) {
                 Portfolio p = new Portfolio(coins);
                 p.countParams(list);
@@ -125,6 +211,7 @@ public class ApiService {
         }
     }
 
+//    пересобирает вид данных в необходимый вид json (необходимо переписать!)
     public Pers setPrPr(){
         List<Coins> coins = new ArrayList<>();
         int count =0;

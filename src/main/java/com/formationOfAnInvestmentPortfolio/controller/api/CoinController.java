@@ -24,10 +24,19 @@ public class CoinController {
         return apiService.getPopularCoins();
     }
 
+//    -*-*-*-
     @PostMapping("/portfolios")
     Pers getPortfolios(@RequestBody Map<String, List<String>> params){
         return apiService.getPortfolios(params.get("selected"));
     }
+
+//    @PostMapping("/portfolios")
+//    void getPortfolios(@RequestBody Map<String, List<String>> params){
+//        System.out.println("try to understand what's going on");
+//        System.out.println(params);
+//        System.out.println(params.get("selected"));
+//        apiService.getPortfolios(params.get("selected"));
+//    }
 
 
     @GetMapping("/portfolioList")

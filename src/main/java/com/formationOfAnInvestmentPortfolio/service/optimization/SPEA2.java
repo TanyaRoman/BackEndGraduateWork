@@ -4,14 +4,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-public class SPEA implements Optimization{
+public class SPEA2 implements Optimization{
 
     List<Double> expectedReturn;
     List<List<Double>> cov;
 
     Integer archiveSize = 20; // максимальное число решений в архиве
     Integer populationSize = 100; // размер популяции
-    Double mutation = 0.4; // вероятность мутации
+    Double mutation = 0.05; // вероятность мутации
     Double crossing = 0.8; // вероятность скрещивания
     Integer generationCount = 40; // число поколений
     Integer maxPriority = 50; // максимальное значение гена
@@ -19,79 +19,119 @@ public class SPEA implements Optimization{
 
     List<List<Integer>> population;
 
-    public SPEA(List<Double> expectedReturn, List<List<Double>> cov) {
+    public SPEA2(List<Double> expectedReturn, List<List<Double>> cov) {
         this.expectedReturn = expectedReturn;
         this.cov = cov;
         this.population = generatePopulation();
         this.maxReturn = findMax(expectedReturn);
     }
 
-//    coin_returns - вектор ожидаемых доходностей активов
+    //    coin_returns - вектор ожидаемых доходностей активов
 //    coin_covs - матрица ковариаций
     public List<List<Double>> count (){
+
+        System.out.println("START_DATA");
+        System.out.println("expectedReturn");
+        System.out.println(expectedReturn);
+        System.out.println("cov");
+        System.out.println();
+        System.out.println("population");
+        System.out.println(population);
+        for (List<Double> l: cov) {
+            System.out.println(l);
+        }
+
         List<List<Integer>> archive = new ArrayList<>();
         int generation = 0;
-//        System.out.println("population: " + population);
 
         while (generation < generationCount){
 
 //            Добавляем недоминируемые решения из популяции в архив
-            List<List<Integer>> nondom = nondominated(population);
-            for (List<Integer> list: nondom) {
+            List<List<Integer>> nondom = nondominated(population);  // *
+            System.out.println("*-*-*-*-*");
+            System.out.println(archive);
+            System.out.println(nondom);
+            for (List<Integer> list: nondom) {  // в python немного по другому, но по логике это должно быть вернр
                 archive.add(list);
             }
-            System.out.println("archive_add: " + archive);
+            System.out.println("archive_nondominated_population");
+            System.out.println(archive);
+            System.out.println();
 
 //            Оставляем в архиве только недоминируемые
             archive = nondominated(archive);
-            System.out.println("archive_nondominate: " + archive);
+
+            System.out.println("archive_nondominated_archive");
+            System.out.println(archive);
+            System.out.println();
+            System.out.println("archive_size");
+            System.out.println(archive.size());
 
 //            Если размер архива превышен - урезаем кластеризацией
             if (archive.size() > archiveSize) {
                 archive = shrinkArchive(archive);
             }
+            System.out.println("archive_size");
+            System.out.println(archive.size());
+            System.out.println();
 
 //            селекция
             List<List<Double>> fitnesses = new ArrayList<>();
             List<List<Double>> archiveFitnesses = new ArrayList<>();
+
+            System.out.println("SELECTION");
+            System.out.println("population");
+            System.out.println(population);
+            System.out.println();
+            System.out.println("archive");
+            System.out.println(archive);
+            System.out.println();
+
             for (List<Integer> list: population) {
                 fitnesses.add(fitness(decode(list)));  // считает приспособленность вида [return, risk] для каждого значения
             }
-//            System.out.println("fitnesses");
-//            System.out.println(fitnesses);
-//            System.out.println();
-
             for (List<Integer> list: archive) {
                 archiveFitnesses.add(fitness(decode(list)));
             }
-//            System.out.println("archiveFitnesses");
-//            System.out.println(archiveFitnesses);
-//            System.out.println();
 
-            population.addAll(archive);
-//            System.out.println("population.addAll(archive)");
-//            System.out.println(population);
-//            System.out.println();
+            System.out.println("fitnesses");
+            System.out.println(fitnesses);
+            System.out.println();
+
+            System.out.println("archiveFitnesses");
+            System.out.println(archiveFitnesses);
+            System.out.println();
+
 //            List<List<Double>> strength = calculateStrength(fitnesses, archiveFitnesses);
+            population.addAll(archive);
+
+            System.out.println("population_+_archive");
+            System.out.println(population);
+            System.out.println();
+
+//            System.out.println("strength");
 
             List<Double> ranks = calculateStrength(fitnesses, archiveFitnesses);
-//            System.out.println("ranks");
-//            System.out.println(ranks);
-//            System.out.println();
 
 //            List<Double> ranks = new ArrayList<>();
 //            for (List<Double> list: strength) {
-//                ranks.add(list.get(0)+list.get(1));
+//                System.out.println("strength_list");
+//                System.out.println(list);
+////                ranks.add(list.get(0)+list.get(1));  // ***
+//                ranks.add(list);
 //            }
-
+            System.out.println();
+            System.out.println("ranks");
+            System.out.println(ranks);
+            System.out.println("population_size");
+            System.out.println(population.size());
+            System.out.println("ranks_size");
+            System.out.println(ranks.size());
             List<List<Integer>> p = new ArrayList<>();
             for (int i = 0; i < populationSize; i++) {
-                p.add(tournament(population, ranks));
+                p.add(tournament(population, ranks));  // *****
             }
             population = p;
-//            System.out.println("population_after_tournament");
-//            System.out.println(population);
-//            System.out.println();
 
 //            скрещивание
             for (int i = 1; i < population.size(); i += 2) {
@@ -101,9 +141,6 @@ public class SPEA implements Optimization{
                     population.set(i, list.get(1));
                 }
             }
-//            System.out.println("crossover -------------/");
-//            System.out.println("population_crossover");
-//            System.out.println(population);
 
 //            мутация
             for (int i = 1; i < population.size(); i += 2) {
@@ -112,10 +149,6 @@ public class SPEA implements Optimization{
                     population.set(i, list);
                 }
             }
-//            System.out.println("mutation------------------/");
-//            System.out.println("population_mutation");
-//            System.out.println(population);
-
             generation += 1;
         }
         List<List<Double>> res = new ArrayList<>();
@@ -150,18 +183,28 @@ public class SPEA implements Optimization{
     //    Получение списка недоминируемых решений из популяции
     private List<List<Integer>> nondominated(List<List<Integer>> population){
 
+        System.out.println("nondominate --+++-+++-+++-+++-++-++-+-+-");
+        System.out.println("popuation");
+        System.out.println(population);
         List<List<Double>> fitnesses = new ArrayList<>();
         for (List<Integer> list: population) {
-            fitnesses.add(fitness(decode(list)));
+            fitnesses.add(fitness(decode(list)));  // *
         }
 
+        System.out.println("population in nondominated");
+        System.out.println(population);
+        System.out.println("fitnesses in nondominated");
+        System.out.println(fitnesses);
+        System.out.println();
         List<List<Integer>> res = new ArrayList<>();
 
+//        System.out.println("play with break in nondominated");
         for (int i = 0; i < population.size(); i++) {
             Boolean dominated = false;
             for (int j = 0; j < population.size(); j++) {
-                if ((i != j)&&(dominates(fitnesses.get(j), fitnesses.get(i)))){
+                if ((i != j)&&(dominates(fitnesses.get(i), fitnesses.get(j)))){
                     dominated = true;
+//                    System.out.println("br " + i + " " + j + ": " + fitnesses.get(i) + " " + fitnesses.get(j));
                     break;
                 }
             }
@@ -169,25 +212,27 @@ public class SPEA implements Optimization{
                 res.add(population.get(i));
             }
         }
+        System.out.println("res");
+        System.out.println(res);
+        System.out.println();
         return res;
     }
 
     //    Определение вектора приспособленности декодированного решения
     private List<Double> fitness(List<Double> decodedSolution){
-
         Integer count = decodedSolution.size();
 
         Double sum = Double.valueOf(0);
         for (int i = 0; i < count; i++) {
             sum += decodedSolution.get(i)*expectedReturn.get(i);
         }
-        Double returnFithess = maxReturn - sum;
 
+        Double returnFithess = maxReturn - sum;
         Double riskFitness = Double.valueOf(0);
         sum = Double.valueOf(0);
         for (int i = 0; i < count; i++) {
             for (int j = 0; j < count; j++) {
-                sum += cov.get(i).get(j) * decodedSolution.get(i) * decodedSolution.get(j);
+                sum += cov.get(i).get(j) * decodedSolution.get(i) * decodedSolution.get(j);  // *
             }
         }
         riskFitness = sum;
@@ -334,9 +379,11 @@ public class SPEA implements Optimization{
         return Math.pow(d, (double) 1/2);
     }
 
-//    Вычисление параметров "силы" для векторов приспособленности особей
+    //    Вычисление параметров "силы" для векторов приспособленности особей
 //    популяции (fitnesses) и архива (archive_fitnesses)
     private List<Double> calculateStrength (List<List<Double>> fitnesses, List<List<Double>> archiveFitnesses){
+
+//        ВОЗМОЖНО ИСТОЧНИК ВСЕХ ПРОБЛЕМ !!!!
 
         List<Double> archiveStrengths = new ArrayList<>();
         List<Double> strengths = new ArrayList<>();
@@ -345,18 +392,29 @@ public class SPEA implements Optimization{
             strengths.add(1.0);
         }
 
+        System.out.println("--------------------------------");
         for (List<Double> archiveItem: archiveFitnesses) {
             List<Integer> dominated = new ArrayList<>();  // индексы доминирующих значений
             for (int i = 0; i < fitnesses.size(); i++) {
+//            System.out.println("archiveItem: " + archiveItem);
+//            System.out.println("fitnesses.get(i): " + fitnesses.get(i));
+//            System.out.println(dominates(archiveItem, fitnesses.get(i)));
                 if (dominates(archiveItem, fitnesses.get(i))){
+
                     dominated.add(i);
                 }
             }
+
+            System.out.println("dominated");
+            System.out.println(dominated);
+            System.out.println();
+
             Double strength = (double)dominated.size() / (double) (1 + fitnesses.size());
 
             archive_strengths.add(strength);
 
-            for (int i = 0; i < dominated.size(); i++) {
+//        for (int i = 0; i < dominated.size(); i++) {
+            for (int i = 0; i < fitnesses.size(); i++) {
                 strengths.add(i, 1 + strength);
             }
         }
@@ -367,8 +425,71 @@ public class SPEA implements Optimization{
         for (Double d:archive_strengths) {
             archiveStrengths.add(d);
         }
+
+
+//        for (int i = 0; i < l1.size(); i++) {
+//            List<Double> l = new ArrayList<>();
+//            l.add(l1.get(i));
+//            l.add(l2.get(i));
+//            archiveStrengths.add(l);
+//        }
+
+        System.out.println();
+        System.out.println("archiveStrengths");
+        System.out.println(archiveStrengths);
+        System.out.println();
         return archiveStrengths;
     }
+//    private List<List<Double>> calculateStrength (List<List<Double>> fitnesses, List<List<Double>> archiveFitnesses){
+//
+////        ВОЗМОЖНО ИСТОЧНИК ВСЕХ ПРОБЛЕМ !!!!
+//
+//        List<List<Double>> archiveStrengths = new ArrayList<>();
+//        List<Double> l1 = new ArrayList<>();
+//        List<Double> l2 = new ArrayList<>();
+//        for (List<Double> archiveItem: archiveFitnesses) {
+//            List<Integer> dominated = new ArrayList<>();  // индексы доминирующих значений
+//            for (int i = 0; i < fitnesses.size(); i++) {
+//
+//                if (dominates(archiveItem, fitnesses.get(i))){
+//                    dominated.add(i);
+//                }
+//            }
+//
+//            System.out.println("dominated");
+//            System.out.println(dominated);
+//            System.out.println();
+//
+//            Double strength = (double)dominated.size() / (double) (1 + fitnesses.size());
+//
+//            l1.add(strength);
+//
+//            for (int i = 0; i < dominated.size(); i++) {
+//                Double s = Double.valueOf(0);
+//                if (l2.size() == dominated.size()){
+//                    System.out.println("if size equals");
+//                    s = l2.get(i);
+//                }
+//                l2.add(i,s + strength);
+//
+//            }
+//        }
+//        archiveStrengths.add(l1);
+//        archiveStrengths.add(l2);
+//
+////        for (int i = 0; i < l1.size(); i++) {
+////            List<Double> l = new ArrayList<>();
+////            l.add(l1.get(i));
+////            l.add(l2.get(i));
+////            archiveStrengths.add(l);
+////        }
+//
+//        System.out.println();
+//        System.out.println("archiveStrengths");
+//        System.out.println(archiveStrengths);
+//        System.out.println();
+//        return archiveStrengths;
+//    }
 
     //    Турнирная селекция
     private List<Integer> tournament(List<List<Integer>> population, List<Double> ranks){
@@ -381,7 +502,7 @@ public class SPEA implements Optimization{
         Double min = Double.valueOf(1000000);
         int index = 0;
         for (int i = 0; i < indexes.size(); i++) {
-            if (ranks.get(i) < min){
+            if (ranks.get(i) < min){  // ******
                 min = ranks.get(i);
                 index = i;
             }
